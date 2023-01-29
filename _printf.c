@@ -1,50 +1,50 @@
-#include <limits.h>
-#include <stdio.h>
 #include "main.h"
+
 /**
- * _printf - replication of some of the features from C function printf()
- * @format: character string of directives, flags, modifiers, & specifiers
- * Description: This function uses the variable arguments functionality and is
- * supposed to resemble printf().  Please review the README for more
- * information on how it works.
- * Return: number of characters printed
+ * _printf - prints formatted data to stdout
+ * @format: string that contains the format to print
+ * Return: number of characters written
  */
-int _printf(const char *format, ...)
+int _printf(char *format, ...)
 {
-	va_list args_list;
-	inventory_t *inv;
-	void (*temp_func)(inventory_t *);
+	int written = 0, (*structype)(char *, va_list);
+	char q[3];
+	va_list pa;
 
-	if (!format)
+	if (format == NULL)
 		return (-1);
-	va_start(args_list, format);
-	inv = build_inventory(&args_list, format);
-
-	while (inv && format[inv->i] && !inv->error)
+	q[2] = '\0';
+	va_start(pa, format);
+	_putchar(-1);
+	while (format[0])
 	{
-		inv->c0 = format[inv->i];
-		if (inv->c0 != '%')
-			write_buffer(inv);
-		else
+		if (format[0] == '%')
 		{
-			parse_specifiers(inv);
-			temp_func = match_specifier(inv);
-			if (temp_func)
-				temp_func(inv);
-			else if (inv->c1)
+			structype = driver(format);
+			if (structype)
 			{
-				if (inv->flag)
-					inv->flag = 0;
-				write_buffer(inv);
+				q[0] = '%';
+				q[1] = format[1];
+				written += structype(q, pa);
+			}
+			else if (format[1] != '\0')
+			{
+				written += _putchar('%');
+				written += _putchar(format[1]);
 			}
 			else
 			{
-				if (inv->space)
-					inv->buffer[--(inv->buf_index)] = '\0';
-				inv->error = 1;
+				written += _putchar('%');
+				break;
 			}
+			format += 2;
 		}
-		inv->i++;
+		else
+		{
+			written += _putchar(format[0]);
+			format++;
+		}
 	}
-	return (end_func(inv));
+	_putchar(-2);
+	return (written);
 }
